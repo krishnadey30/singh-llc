@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twilio SMS Sender</title>
+</head>
+<body>
+    <h2>Send SMS via Twilio</h2>
+    <label for="message">Message:</label>
+    <input type="text" id="message" placeholder="Enter your message">
+    <br><br>
+    <label for="file">Upload TXT File with Numbers:</label>
+    <input type="file" id="file" accept=".txt">
+    <br><br>
+    <button onclick="sendSMS()">Send SMS</button>
+    
+    <script>
+        const TWILIO_ACCOUNT_SID = "YOUR_TWILIO_ACCOUNT_SID";
+        const TWILIO_AUTH_TOKEN = "YOUR_TWILIO_AUTH_TOKEN";
+        const TWILIO_PHONE_NUMBER = "YOUR_TWILIO_PHONE_NUMBER";
+        
+        async function sendSMS() {
+            const message = document.getElementById("message").value;
+            const fileInput = document.getElementById("file");
+            
+            if (!message || !fileInput.files.length) {
+                alert("Please enter a message and upload a file.");
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const text = await file.text();
+            const numbers = text.split('\n').map(num => num.trim()).filter(num => num);
+            
+            numbers.forEach(async (number) => {
+                try {
+                    const response = await fetch('/send-sms', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ number, message, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER })
+                    });
+                    const data = await response.json();
+                    console.log(`Sent to ${number}:`, data);
+                } catch (error) {
+                    console.error(`Error sending to ${number}:`, error);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
